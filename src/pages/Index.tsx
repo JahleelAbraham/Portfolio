@@ -3,7 +3,13 @@ import React from "react";
 import Theme from "./../components/Theme";
 import anime from "animejs/lib/anime.es.js";
 
+import { KeybindsContext } from "../context/Keybinds";
+
 function Index() {
+  const Keybinds = React.useContext(KeybindsContext);
+
+  const [terminal, showTerminal] = React.useState(false);
+
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -24,39 +30,85 @@ function Index() {
   }, []);
 
   const StartMachine = () => {
+    Keybinds.c = () => {};
+    showTerminal(true);
     animationRef.current = anime({
       targets: ".startMachine",
       opacity: [1, 0],
-      scaleY: [1, 0.1],
-      scaleX: [1, 25],
-      duration: 100,
-      delay: 100,
+      scale: [1, 0],
+      duration: 500,
+      delay: 0,
       loop: false,
       direction: "normal",
-      easing: "easeInOutSine",
+      complete: (anim) => {
+        document.getElementsByClassName("startMachine").item(0)?.remove();
+        document.getElementsByClassName("terminal")!.item(0)!.innerHTML =
+          document
+            .getElementsByClassName("terminal")
+            .item(0)!
+            .textContent!.replace(
+              /\S/g,
+              "<span class='letter' style='display: inline-block'>$&</span>"
+            );
+
+        StartTerminal();
+      },
     });
 
     animationRef.current.restart();
   };
 
+  const StartTerminal = () => {
+    let timeline = anime.timeline({
+      loop: true,
+      autoplay: true,
+    });
+
+    timeline.add({
+      duration: 1000,
+      delay: (el, i) => 70*i,
+      endDelay: 500
+     })
+
+     timeline.add({
+      targets: 'div .letter',
+      scale: [4,1],
+      opacity: [0,1],
+      easing: "easeOutExpo",
+      duration: 1000,
+      delay: (el, i) => 70*i,
+      endDelay: 500
+    })
+  };
+
+  Keybinds.c = StartMachine;
+
+  const onKeyPress = (e: React.KeyboardEvent) => {
+    try {
+      Keybinds[e.key]();
+    } catch (error) {
+      console.warn("No callback has been defiend for key: " + e.key);
+    }
+  };
+
   return (
     <>
-      <div></div>
-      <div className="hero min-h-screen">
-        <div className="hero-content">
-          <span
-            className="startMachine"
-            onKeyDown={(e) => (e.key === "C" ? StartMachine() : () => {})}
-          >
-            Press{" "}
-            <kbd className="kbd kbd-md" onClick={StartMachine}>
-              C
-            </kbd>{" "}
-            to start machine.
-          </span>
+      <div tabIndex={0} onKeyDown={onKeyPress} autoFocus={true}>
+        {terminal && <div className="terminal">Starting Machine...OK!</div>}
+        <div className="hero min-h-screen">
+          <div className="hero-content">
+            {/* Animation Components */}
+            <div className="startMachine">
+              Press{" "}
+              <kbd className="kbd kbd-md" onClick={StartMachine}>
+                C
+              </kbd>{" "}
+              to start machine.
+            </div>
+            {/* End of Animation Components */}
+          </div>
         </div>
       </div>
-
       <footer className="footer items-center p-4 bg-neutral text-neutral-content">
         <div className="items-center grid-flow-col">
           <svg
