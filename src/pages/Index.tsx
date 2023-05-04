@@ -1,20 +1,25 @@
 import "./Index.css";
+
 import React from "react";
-import Theme from "./../components/Theme";
 import anime from "animejs/lib/anime.es.js";
 
 import { KeybindsContext } from "../context/Keybinds";
+import Terminal from "../components/Terminal";
+import Theme from "./../components/Theme";
+import Root from "./Root";
 
 function Index() {
   const Keybinds = React.useContext(KeybindsContext);
+  const animationRef = React.useRef(anime({}));
 
   const [terminal, showTerminal] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
+
+  //TODO: Autofocus main div for keyboard navigation.
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  const animationRef = React.useRef(anime({}));
 
   React.useEffect(() => {
     animationRef.current = anime({
@@ -42,43 +47,15 @@ function Index() {
       direction: "normal",
       complete: (anim) => {
         document.getElementsByClassName("startMachine").item(0)?.remove();
-        document.getElementsByClassName("terminal")!.item(0)!.innerHTML =
-          document
-            .getElementsByClassName("terminal")
-            .item(0)!
-            .textContent!.replace(
-              /\S/g,
-              "<span class='letter' style='display: inline-block'>$&</span>"
-            );
-
-        StartTerminal();
       },
     });
 
     animationRef.current.restart();
   };
 
-  const StartTerminal = () => {
-    let timeline = anime.timeline({
-      loop: true,
-      autoplay: true,
-    });
-
-    timeline.add({
-      duration: 1000,
-      delay: (el, i) => 70*i,
-      endDelay: 500
-     })
-
-     timeline.add({
-      targets: 'div .letter',
-      scale: [4,1],
-      opacity: [0,1],
-      easing: "easeOutExpo",
-      duration: 1000,
-      delay: (el, i) => 70*i,
-      endDelay: 500
-    })
+  const Start = () => {
+    document.getElementById("startup")?.remove();
+    setOpen(true);
   };
 
   Keybinds.c = StartMachine;
@@ -91,10 +68,12 @@ function Index() {
     }
   };
 
+  //TODO: Clean up this
   return (
     <>
       <div tabIndex={0} onKeyDown={onKeyPress} autoFocus={true}>
-        {terminal && <div className="terminal">Starting Machine...OK!</div>}
+        {/* {open && <FakeError />} */}
+        {terminal && <Terminal Start={Start} />}
         <div className="hero min-h-screen">
           <div className="hero-content">
             {/* Animation Components */}
@@ -106,6 +85,7 @@ function Index() {
               to start machine.
             </div>
             {/* End of Animation Components */}
+            { open && <Root /> }
           </div>
         </div>
       </div>
