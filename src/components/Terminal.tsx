@@ -6,12 +6,12 @@ function Terminal({ Start = () => {} }) {
   let terminalRef = React.useRef(false);
 
   React.useEffect(() => {
-    if(terminalRef.current) return;
+    if (terminalRef.current) return;
     terminalRef.current = true;
 
     new Termynal(document.getElementById("startup")!, {
       startDelay: 100,
-      lineDelay: 200, 
+      lineDelay: 200,
       typeDelay: 30,
       progressChar: "#",
       onEnd: Start,
@@ -44,7 +44,9 @@ function Terminal({ Start = () => {} }) {
           neighborhood programmer. (Courtesy of ChatGPT)
         </span>
         <span data-ty></span>
-        <span data-ty="input" className="text-warning">./JahleelPortfolio --showcase</span>
+        <span data-ty="input" className="text-warning">
+          ./JahleelPortfolio --showcase
+        </span>
         <span data-ty></span>
       </div>
     </>

@@ -16,10 +16,70 @@ function Index() {
   const [open, setOpen] = React.useState(false);
 
   //TODO: Autofocus main div for keyboard navigation.
+  const Start = () => {
+    document.getElementById("startup")?.remove();
+    setOpen(true);
+  };
+  
+  const StartMachine = () => {
+    sessionStorage.setItem("startMachine", "true");
+
+    Keybinds.c = () => {};
+    showTerminal(true);
+    animationRef.current = anime({
+      targets: ".skip",
+      opacity: [0, 1],
+      translateY: [50, 0],
+      duration: 500,
+      delay: 100,
+      loop: false,
+      direction: "normal",
+      easing: "easeInOutSine",
+      complete: (anim) => {
+        document.getElementsByClassName("startMachine").item(0)?.remove();
+      },
+    });
+
+    animationRef.current.restart();
+  };
+
+  const Skip = React.useCallback(() => {
+    animationRef.current = anime({
+      targets: ".skip",
+      opacity: [1, 0],
+      translateY: [0, 50],
+      duration: 50,
+      delay: 100,
+      loop: false,
+      direction: "normal",
+      easing: "easeInOutSine",
+      complete: (anim) => {
+        document.getElementsByClassName("skip").item(0)?.remove();
+      },
+    });
+    animationRef.current.restart();
+    Start();
+  }, [animationRef]);
+
+  const onKeyPress = (e: React.KeyboardEvent) => {
+    try {
+      Keybinds[e.key]();
+    } catch (error) {
+      console.warn("No callback has been defiend for key: " + e.key);
+    }
+  };
+
+  Keybinds.c = StartMachine;
+  Keybinds.Enter = Skip;
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+
+    if (sessionStorage.getItem("startMachine") === "true") {
+      document.getElementsByClassName("startMachine").item(0)?.remove();
+      Skip();
+    }
+  }, [Skip]);
 
   React.useEffect(() => {
     animationRef.current = anime({
@@ -31,63 +91,40 @@ function Index() {
       loop: false,
       direction: "normal",
       easing: "easeInOutSine",
+      complete: (anim) => {},
     });
   }, []);
-
-  const StartMachine = () => {
-    Keybinds.c = () => {};
-    showTerminal(true);
-    animationRef.current = anime({
-      targets: ".startMachine",
-      opacity: [1, 0],
-      scale: [1, 0],
-      duration: 500,
-      delay: 0,
-      loop: false,
-      direction: "normal",
-      complete: (anim) => {
-        document.getElementsByClassName("startMachine").item(0)?.remove();
-      },
-    });
-
-    animationRef.current.restart();
-  };
-
-  const Start = () => {
-    document.getElementById("startup")?.remove();
-    setOpen(true);
-  };
-
-  Keybinds.c = StartMachine;
-
-  const onKeyPress = (e: React.KeyboardEvent) => {
-    try {
-      Keybinds[e.key]();
-    } catch (error) {
-      console.warn("No callback has been defiend for key: " + e.key);
-    }
-  };
 
   //TODO: Clean up this
   return (
     <>
       <div tabIndex={0} onKeyDown={onKeyPress} autoFocus={true}>
+        {open && <Root />} {/* Main Components */}
+        {/* Animation Components */}
         {/* {open && <FakeError />} */}
         {terminal && <Terminal Start={Start} />}
-        <div className="hero min-h-screen">
-          <div className="hero-content">
-            {/* Animation Components */}
-            <div className="startMachine">
-              Press{" "}
-              <kbd className="kbd kbd-md" onClick={StartMachine}>
-                C
-              </kbd>{" "}
-              to start machine.
+        {!open && (
+          <>
+            <div className="hero min-h-screen">
+              <div className="startMachine flex whitespace-pre-wrap items-center justify-center h-screen">
+                Press{" "}
+                <kbd className="kbd kbd-md" onClick={StartMachine}>
+                  C
+                </kbd>{" "}
+                to start machine.
+              </div>
             </div>
-            {/* End of Animation Components */}
-            { open && <Root /> }
-          </div>
-        </div>
+            <div
+              className="skip group fixed bottom-0 right-0 p-2 flex items-end justify-end"
+              style={{ opacity: 0 }}
+            >
+              <div className="text-white flex items-center justify-center p-3 whitespace-pre-wrap rounded-full z-50 ">
+                <kbd className="kbd kbd-md">Enter</kbd> to skip
+              </div>
+            </div>
+          </>
+        )}
+        {/* End of Animation Components */}
       </div>
       <footer className="footer items-center p-4 bg-neutral text-neutral-content">
         <div className="items-center grid-flow-col">
